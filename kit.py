@@ -121,13 +121,13 @@ def cvar_historic(r, level=5):
     else:
         raise TypeError("Expected r to be Series or DataFrame")
 
-def annual_return_per_month(r):
+def annual_return_per_month(r, period=12):
     """
     Calculate the annual return
     """
     interval = r.shape[0]
     return_per_interval = (1+r).prod()**(1/interval) - 1
-    return (return_per_interval+1)**12 
+    return (return_per_interval+1)**period - 1 
 
 def annual_volatility_by_month(r):
     return r.std()*np.sqrt(12)
@@ -156,3 +156,16 @@ def sharpe_ratio(r, risk_free_rate, period):
     ann_ex_ret = annual_return(excess_ret, period)
     annual_vol = annual_volatility(r, period)
     return ann_ex_ret/annual_vol
+
+def portfolio_return(weights, er):
+    """
+    Calculate the return of a portfolio given weights and expected returns
+    """
+    return weights.T @ er
+
+
+def portfolio_vol(weights, cov):
+    """
+    Calculate the volatility of a portfolio given weights and covariance matrix
+    """
+    return (weights.T @ cov @ weights) **0.5
