@@ -236,10 +236,50 @@ def optimal_weights(n_points, er, cov):
     return weights
 
 
-def plot_ef(npoints, er, cov, style=".-"):
+def msr(riskfree_rate, er, cov):
+    """Return the weights of the portfolio that gives the maximum Sharpe ratio"""
+    
+    n = er.shape[0]
+    init_guess = np.repeat(1/n, n)
+    bounds = ((0.0, 1.0),) * n
+
+    weights_sum_to_1 = {
+        "type": "eq",
+        "fun": lambda weights: np.sum(weights) - 1
+    }
+
+    def neg_sharpe_ratio(weights, riskfree_rate, er, cov):
+        """Negative Sharpe ratio (because we minimize)"""
+        r = portfolio_return(weights, er)
+        vol = portfolio_vol(weights, cov)
+        return -(r - riskfree_rate) / vol
+
+    result = minimize(
+        neg_sharpe_ratio,
+        init_guess,
+        args=(riskfree_rate, er, cov),
+        method="SLSQP",
+        bounds=bounds,
+        constraints=(weights_sum_to_1,),
+        options={"disp": False}
+    )
+
+    return result.x
+
+def plot_ef(npoints, er, cov, style=".-", show_cml=False,riskfree_rate=0.1):
     """Plot N-asset efficient frontier"""
     weights = optimal_weights(npoints, er, cov)
     rets = [portfolio_return(w, er) for w in weights]
     vols = [portfolio_vol(w, cov) for w in weights]
     ef = pd.DataFrame({"Returns": rets, "Volatility": vols})
-    return ef.plot.line(x="Volatility", y="Returns", style=style)
+    ax = ef.plot.line(x="Volatility", y="Returns", style=style)
+    if show_cml:
+        ax.set_xlim(left=0)
+        w_msr = msr(riskfree_rate, er, cov)
+        r_msr = portfolio_return(w_msr, er)
+        vol_msr = portfolio_vol(w_msr, cov)
+        # Add cml
+        cml_x = [0, vol_msr]
+        cml_y = [riskfree_rate, r_msr]
+        ax.plot(cml_x,cml_y, color='green', linestyle="dashed")
+    return ax
