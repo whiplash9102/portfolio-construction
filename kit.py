@@ -33,6 +33,23 @@ def get_hfi_returns():
     hfi.index= hfi.index.to_period("M")
     return hfi
 
+def get_ind_size():
+    """
+    Load and format the size of each stock in each industry
+    """
+    ind = pd.read_csv("data/ind30_m_size.csv", header=0, index_col=0,parse_dates=True)
+    ind.index = pd.to_datetime(ind.index, format="%Y%m").to_period("M")
+    ind.columns = ind.columns.str.strip()
+    return ind
+
+def get_ind_nfirms():
+    """
+    """
+    ind = pd.read_csv("data/ind30_m_nfirms.csv", header=0, index_col=0,parse_dates=True)
+    ind.index = pd.to_datetime(ind.index, format="%Y%m").to_period("M")
+    ind.columns = ind.columns.str.strip()
+    return ind
+
 def get_ind_returns():
     """
     Load and format the retunr of each stock in each industry
@@ -266,13 +283,34 @@ def msr(riskfree_rate, er, cov):
 
     return result.x
 
-def plot_ef(npoints, er, cov, style=".-", show_cml=False,riskfree_rate=0.1):
+def gmv(cov):
+    """
+    Returns the weight of the Global Minimum Vol Portfolio
+    """   
+    n = cov.shape[0]
+    return msr(0, np.repeat(1, n), cov)
+
+
+def plot_ef(npoints, er, cov, style=".-", show_cml=False,riskfree_rate=0.1, show_ew= False, show_gmv=False):
     """Plot N-asset efficient frontier"""
     weights = optimal_weights(npoints, er, cov)
     rets = [portfolio_return(w, er) for w in weights]
     vols = [portfolio_vol(w, cov) for w in weights]
     ef = pd.DataFrame({"Returns": rets, "Volatility": vols})
     ax = ef.plot.line(x="Volatility", y="Returns", style=style)
+    if show_gmv:
+        w_gmv = gmv(cov)
+        r_gmv = portfolio_return(w_gmv, er)
+        vol_gmv = portfolio_vol(w_gmv, cov)
+        # Display gmv
+        ax.plot([vol_gmv], [r_gmv], marker="o", color="midnightblue", markersize=10)
+    if show_ew:
+        n = er.shape[0]
+        w_ew = np.repeat(1/n, n)
+        r_ew = portfolio_return(w_ew, er)
+        vol_ew = portfolio_vol(w_ew, cov)
+        # Display Ew
+        ax.plot([vol_ew], [r_ew], marker="o", color="black", markersize=10)
     if show_cml:
         ax.set_xlim(left=0)
         w_msr = msr(riskfree_rate, er, cov)

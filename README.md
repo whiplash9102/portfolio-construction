@@ -105,8 +105,6 @@ Running Jupyter from the root folder matters because `kit.py` loads datasets wit
 |-- 9_N_Asset_Efficient_Frontier.ipynb
 |-- 10_Max_Sharp_Ratio.ipynb
 |-- 11_GMV.ipynb
-|-- Exercise/
-|   `-- module2.ipynb
 |-- data/
 |   `-- *.csv
 |-- kit.py
