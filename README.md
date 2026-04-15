@@ -1,6 +1,6 @@
 # Portfolio Construction
 
-This repository contains Jupyter notebooks and helper code for the ESSCA MSc Finance & Data Analyst course on portfolio construction. The material moves from basic return calculations to drawdowns, risk diagnostics, Value at Risk, efficient frontiers, maximum Sharpe ratio portfolios, and the global minimum variance portfolio.
+This repository contains Jupyter notebooks and helper code for the ESSCA MSc Finance & Data Analyst course on portfolio construction. The material moves from basic return calculations to drawdowns, risk diagnostics, Value at Risk, efficient frontiers, maximum Sharpe ratio portfolios, the global minimum variance portfolio, limits of diversification, CPPI dynamic allocation, and Monte Carlo simulation via random walk models.
 
 The project is organized as a learning workspace rather than a packaged library. Most of the analysis lives in notebooks, while reusable functions are collected in `kit.py`.
 
@@ -17,8 +17,11 @@ The project is organized as a learning workspace rather than a packaged library.
 - `9_N_Asset_Efficient_Frontier.ipynb`: long-only optimization for multi-asset portfolios.
 - `10_Max_Sharp_Ratio.ipynb`: tangency portfolio / maximum Sharpe ratio optimization.
 - `11_GMV.ipynb`: global minimum variance portfolio construction.
+- `12_Limits_of_Diversification.ipynb`: cap-weighted total market index, diversification limits, and industry-level analysis.
+- `13_CPPI.ipynb`: Constant Proportion Portfolio Insurance (CPPI) strategy — dynamic floor-based allocation between a risky and a safe asset.
+- `14_Random_Walk.ipynb`: Monte Carlo simulation of portfolio paths using geometric Brownian motion / random walk models.
 - `Exercise/module2.ipynb`: extra practice notebook using the shared helper module.
-- `kit.py`: shared functions for data loading, statistics, risk measures, and portfolio optimization.
+- `kit.py`: shared functions for data loading, statistics, risk measures, portfolio optimization, and dynamic strategies.
 - `data/`: local CSV datasets used by the notebooks and helper functions.
 
 ## Learning Flow
@@ -36,18 +39,22 @@ If you want to go through the repository in order, the recommended sequence is:
 9. `9_N_Asset_Efficient_Frontier.ipynb`
 10. `10_Max_Sharp_Ratio.ipynb`
 11. `11_GMV.ipynb`
+12. `12_Limits_of_Diversification.ipynb`
+13. `13_CPPI.ipynb`
+14. `14_Random_Walk.ipynb`
 
-This order follows the progression from return measurement to portfolio construction and optimization.
+This order follows the progression from return measurement → portfolio construction and optimization → dynamic portfolio strategies and simulation.
 
 ## `kit.py` Overview
 
-The `kit.py` module is the reusable core of the repository. It includes functions in five main categories:
+The `kit.py` module is the reusable core of the repository. It includes functions in six main categories:
 
-- Data loading: `get_hfi_returns()`, `get_ind_returns()`
-- Risk and distribution statistics: `drawdown()`, `skewness()`, `kurtosis()`, `is_normal()`, `semideviation()`
-- Tail-risk measures: `var_historic()`, `var_gaussian()`, `cvar_historic()`
-- Annualization and portfolio analytics: `annual_return()`, `annual_volatility()`, `sharpe_ratio()`, `portfolio_return()`, `portfolio_vol()`
-- Optimization and plotting: `minimize_vol()`, `optimal_weights()`, `msr()`, `gmv()`, `plot_ef()`, `plot_ef2()`
+- **Data loading**: `get_hfi_returns()`, `get_ind_returns()`, `get_ind_size()`, `get_ind_nfirms()`, `get_total_market_index_return()`
+- **Risk and distribution statistics**: `drawdown()`, `skewness()`, `kurtosis()`, `is_normal()`, `semideviation()`
+- **Tail-risk measures**: `var_historic()`, `var_gaussian()`, `cvar_historic()`
+- **Annualization and portfolio analytics**: `annual_return()`, `annual_volatility()`, `sharpe_ratio()`, `portfolio_return()`, `portfolio_vol()`
+- **Optimization and plotting**: `minimize_vol()`, `optimal_weights()`, `msr()`, `gmv()`, `plot_ef()`, `plot_ef2()`
+- **Dynamic strategies and reporting**: `run_cppi()`, `summary_stats()`
 
 There are also helper functions such as `annual_return_per_month()` and `annual_volatility_by_month()` for notebook-specific workflows.
 
@@ -58,6 +65,12 @@ import kit as erk
 
 hfi = erk.get_hfi_returns()
 drawdowns = erk.drawdown(hfi["Convertible Arbitrage"])
+
+# Run CPPI backtest
+result = erk.run_cppi(risky_r=hfi["Convertible Arbitrage"], m=3, floor=0.8)
+
+# Print a summary stats table
+stats = erk.summary_stats(hfi)
 ```
 
 ## Data Files
@@ -67,7 +80,7 @@ The `data/` folder contains the CSV inputs used throughout the notebooks, includ
 - EDHEC hedge fund index returns
 - Fama-French factor datasets
 - 30-industry and 49-industry return series
-- portfolio sorts based on firm size
+- portfolio sorts based on firm size (number of firms and average size per industry)
 - sample price series and Berkshire Hathaway data
 
 Most helper functions assume these files are available under the local `data/` directory with the current filenames.
@@ -105,6 +118,12 @@ Running Jupyter from the root folder matters because `kit.py` loads datasets wit
 |-- 9_N_Asset_Efficient_Frontier.ipynb
 |-- 10_Max_Sharp_Ratio.ipynb
 |-- 11_GMV.ipynb
+|-- 12_Limits_of_Diversification.ipynb
+|-- 13_CPPI.ipynb
+|-- 14_Random_Walk.ipynb
+|-- BuildOwnModules/
+|-- Exercise/
+|   `-- module2.ipynb
 |-- data/
 |   `-- *.csv
 |-- kit.py
@@ -116,3 +135,4 @@ Running Jupyter from the root folder matters because `kit.py` loads datasets wit
 - Some filenames reflect the original course naming and have been kept unchanged for compatibility with the existing workspace.
 - The notebooks are exploratory. Results may depend on cell execution order if a notebook has not been run from top to bottom.
 - If you update `kit.py`, rerun dependent notebooks so imported functions and plotted results stay in sync.
+- The CPPI notebook (`13_CPPI.ipynb`) relies on `run_cppi()` from `kit.py`. Ensure `kit.py` is importable from the same directory as the notebooks.
