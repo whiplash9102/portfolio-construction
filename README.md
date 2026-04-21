@@ -1,138 +1,189 @@
-# Portfolio Construction
+# Portfolio Construction Toolkit
 
-This repository contains Jupyter notebooks and helper code for the ESSCA MSc Finance & Data Analyst course on portfolio construction. The material moves from basic return calculations to drawdowns, risk diagnostics, Value at Risk, efficient frontiers, maximum Sharpe ratio portfolios, the global minimum variance portfolio, limits of diversification, CPPI dynamic allocation, and Monte Carlo simulation via random walk models.
+A hands-on Python toolkit for quantitative portfolio analysis — from basic return calculations all the way to dynamic allocation strategies and Monte Carlo simulation.
 
-The project is organized as a learning workspace rather than a packaged library. Most of the analysis lives in notebooks, while reusable functions are collected in `kit.py`.
+The project is organized as an **interactive learning workspace**: analysis lives in Jupyter notebooks, while all reusable functions are collected in a single helper module (`kit.py`). Sample datasets ship with the repository so every notebook runs out of the box.
 
-## Repository Contents
+---
 
-- `1_RiskAjustedReturns.ipynb`: introductory return calculations, compounding, and basic performance measurement.
-- `2_ComputeDrawDown.ipynb`: wealth index construction, running peaks, and drawdown analysis.
-- `3_BuildModules.ipynb`: first step toward moving repeated logic into reusable Python functions.
-- `4_DeviationsFromNormality.ipynb`: skewness, kurtosis, and normality testing.
-- `5_VaR_CVaR.ipynb`: semideviation, historic VaR, Gaussian VaR, modified VaR, and CVaR.
-- `6_Quiz.ipynb`: applied exercises using portfolio and return datasets.
-- `7_Efficient_Frontier.ipynb`: portfolio return, volatility, covariance, and efficient frontier basics.
-- `8_Asset_efficient_frontier.ipynb`: additional efficient frontier plotting and portfolio combinations.
-- `9_N_Asset_Efficient_Frontier.ipynb`: long-only optimization for multi-asset portfolios.
-- `10_Max_Sharp_Ratio.ipynb`: tangency portfolio / maximum Sharpe ratio optimization.
-- `11_GMV.ipynb`: global minimum variance portfolio construction.
-- `12_Limits_of_Diversification.ipynb`: cap-weighted total market index, diversification limits, and industry-level analysis.
-- `13_CPPI.ipynb`: Constant Proportion Portfolio Insurance (CPPI) strategy — dynamic floor-based allocation between a risky and a safe asset.
-- `14_Random_Walk.ipynb`: Monte Carlo simulation of portfolio paths using geometric Brownian motion / random walk models.
-- `Exercise/module2.ipynb`: extra practice notebook using the shared helper module.
-- `kit.py`: shared functions for data loading, statistics, risk measures, portfolio optimization, and dynamic strategies.
-- `data/`: local CSV datasets used by the notebooks and helper functions.
+## Notebooks
 
-## Learning Flow
+| # | Notebook | Topic |
+|---|----------|-------|
+| 1 | `1_RiskAjustedReturns.ipynb` | Return calculations, compounding, and basic performance measurement |
+| 2 | `2_ComputeDrawDown.ipynb` | Wealth index construction, running peaks, and drawdown analysis |
+| 3 | `3_BuildModules.ipynb` | Refactoring repeated logic into reusable Python functions |
+| 4 | `4_DeviationsFromNormality.ipynb` | Skewness, kurtosis, and normality testing (Jarque-Bera) |
+| 5 | `5_VaR_CVaR.ipynb` | Semideviation, historic VaR, Gaussian VaR, modified (Cornish-Fisher) VaR, and CVaR |
+| 6 | `6_Test_Market.ipynb` | Applied exercises using portfolio and return datasets |
+| 7 | `7_Efficient_Frontier.ipynb` | Portfolio return, volatility, covariance, and efficient frontier basics |
+| 8 | `8_Asset_efficient_frontier.ipynb` | Two-asset efficient frontier plotting and portfolio combinations |
+| 9 | `9_N_Asset_Efficient_Frontier.ipynb` | Long-only mean-variance optimization for multi-asset portfolios |
+| 10 | `10_Max_Sharp_Ratio.ipynb` | Tangency portfolio / maximum Sharpe ratio optimization |
+| 11 | `11_GMV.ipynb` | Global Minimum Variance portfolio construction |
+| 12 | `12_Limits_of_Diversification.ipynb` | Cap-weighted total market index, diversification limits, and industry-level analysis |
+| 13 | `13_CPPI.ipynb` | Constant Proportion Portfolio Insurance — dynamic floor-based allocation between a risky and a safe asset |
+| 14 | `14_Random_Walk.ipynb` | Monte Carlo simulation of portfolio paths using Geometric Brownian Motion |
+| 15 | `15_Interactive_Plotting_Monte_Carlo_Simulations.ipynb` | Interactive widgets for Monte Carlo scenario exploration |
+| 16 | `16_PV_Liabilities_Funding_Ratio.ipynb` | Present value of liabilities and funding ratio analysis |
 
-If you want to go through the repository in order, the recommended sequence is:
+Additional material lives in `Exercise/module2.ipynb`.
 
-1. `1_RiskAjustedReturns.ipynb`
-2. `2_ComputeDrawDown.ipynb`
-3. `3_BuildModules.ipynb`
-4. `4_DeviationsFromNormality.ipynb`
-5. `5_VaR_CVaR.ipynb`
-6. `6_Quiz.ipynb`
-7. `7_Efficient_Frontier.ipynb`
-8. `8_Asset_efficient_frontier.ipynb`
-9. `9_N_Asset_Efficient_Frontier.ipynb`
-10. `10_Max_Sharp_Ratio.ipynb`
-11. `11_GMV.ipynb`
-12. `12_Limits_of_Diversification.ipynb`
-13. `13_CPPI.ipynb`
-14. `14_Random_Walk.ipynb`
+---
 
-This order follows the progression from return measurement → portfolio construction and optimization → dynamic portfolio strategies and simulation.
+## Recommended Learning Flow
 
-## `kit.py` Overview
+The notebooks follow a natural progression:
 
-The `kit.py` module is the reusable core of the repository. It includes functions in six main categories:
+```
+Return Measurement → Risk Diagnostics → Portfolio Construction & Optimization → Dynamic Strategies → Simulation & Liability Management
+```
 
-- **Data loading**: `get_hfi_returns()`, `get_ind_returns()`, `get_ind_size()`, `get_ind_nfirms()`, `get_total_market_index_return()`
-- **Risk and distribution statistics**: `drawdown()`, `skewness()`, `kurtosis()`, `is_normal()`, `semideviation()`
-- **Tail-risk measures**: `var_historic()`, `var_gaussian()`, `cvar_historic()`
-- **Annualization and portfolio analytics**: `annual_return()`, `annual_volatility()`, `sharpe_ratio()`, `portfolio_return()`, `portfolio_vol()`
-- **Optimization and plotting**: `minimize_vol()`, `optimal_weights()`, `msr()`, `gmv()`, `plot_ef()`, `plot_ef2()`
-- **Dynamic strategies and reporting**: `run_cppi()`, `summary_stats()`
+Work through them in numbered order for the smoothest experience.
 
-There are also helper functions such as `annual_return_per_month()` and `annual_volatility_by_month()` for notebook-specific workflows.
+---
 
-Example:
+## `kit.py` — The Core Module
+
+All reusable logic is centralized in `kit.py`. Functions fall into six categories:
+
+### Data Loading
+| Function | Purpose |
+|----------|---------|
+| `get_hfi_returns()` | Load hedge-fund-style index returns |
+| `get_ind_returns()` | Load 30-industry monthly value-weighted returns |
+| `get_ind_size()` | Load average firm size per industry |
+| `get_ind_nfirms()` | Load number of firms per industry |
+| `get_total_market_index_return()` | Compute a cap-weighted total market index from industry data |
+
+### Risk & Distribution Statistics
+| Function | Purpose |
+|----------|---------|
+| `drawdown()` | Wealth index, peak tracking, and drawdown series |
+| `skewness()` / `kurtosis()` | Higher-moment descriptive statistics |
+| `is_normal()` | Jarque-Bera normality test |
+| `semideviation()` | Downside (negative) semideviation |
+
+### Tail-Risk Measures
+| Function | Purpose |
+|----------|---------|
+| `var_historic()` | Historical Value at Risk |
+| `var_gaussian()` | Parametric Gaussian VaR (with optional Cornish-Fisher modification) |
+| `cvar_historic()` | Conditional VaR (Expected Shortfall) |
+
+### Annualization & Portfolio Analytics
+| Function | Purpose |
+|----------|---------|
+| `annual_return()` / `annual_volatility()` | Compounded annual return and annualized volatility |
+| `sharpe_ratio()` | Annualized Sharpe ratio |
+| `portfolio_return()` / `portfolio_vol()` | Weighted portfolio return and volatility |
+
+### Optimization & Visualization
+| Function | Purpose |
+|----------|---------|
+| `minimize_vol()` | Minimize volatility for a given target return (SLSQP) |
+| `optimal_weights()` | Generate efficient frontier weight vectors |
+| `msr()` | Maximum Sharpe Ratio (tangency) portfolio weights |
+| `gmv()` | Global Minimum Variance portfolio weights |
+| `plot_ef()` / `plot_ef2()` | Plot N-asset or 2-asset efficient frontiers with optional CML, EW, and GMV overlays |
+
+### Dynamic Strategies & Simulation
+| Function | Purpose |
+|----------|---------|
+| `run_cppi()` | Backtest the CPPI strategy with configurable multiplier, floor, and optional drawdown-based floor |
+| `gbm()` | Geometric Brownian Motion Monte Carlo price/return simulator |
+| `summary_stats()` | One-call summary table: annualized return, volatility, Sharpe, max drawdown, skew, kurtosis, VaR, CVaR |
+
+### Quick Example
 
 ```python
 import kit as erk
 
+# Load sample hedge fund returns
 hfi = erk.get_hfi_returns()
-drawdowns = erk.drawdown(hfi["Convertible Arbitrage"])
 
-# Run CPPI backtest
+# Drawdown analysis
+dd = erk.drawdown(hfi["Convertible Arbitrage"])
+
+# CPPI backtest
 result = erk.run_cppi(risky_r=hfi["Convertible Arbitrage"], m=3, floor=0.8)
 
-# Print a summary stats table
+# Summary statistics table
 stats = erk.summary_stats(hfi)
+
+# Monte Carlo simulation (10 years, 1 000 paths)
+prices = erk.gbm(n_years=10, n_scenarios=1000, mu=0.07, sigma=0.15)
 ```
 
-## Data Files
+---
 
-The `data/` folder contains the CSV inputs used throughout the notebooks, including:
+## Sample Data
 
-- EDHEC hedge fund index returns
-- Fama-French factor datasets
-- 30-industry and 49-industry return series
-- portfolio sorts based on firm size (number of firms and average size per industry)
-- sample price series and Berkshire Hathaway data
+The `data/` directory ships with mock and publicly available datasets used throughout the notebooks:
 
-Most helper functions assume these files are available under the local `data/` directory with the current filenames.
+- Hedge fund index returns (monthly)
+- Fama-French factor datasets (monthly & daily)
+- 30-industry and 49-industry return series (equal- and value-weighted)
+- Industry-level firm counts and average firm sizes
+- Size-sorted portfolio returns
+- Sample price series and individual stock data
+
+All data loaders in `kit.py` expect these files under the local `data/` directory with their current filenames.
+
+---
 
 ## Setup
 
-There is no `requirements.txt` file in this repository, so dependencies need to be installed manually. A minimal setup is:
-
 ```bash
+# Create and activate a virtual environment
 python3 -m venv .venv
 source .venv/bin/activate
-pip install pandas numpy scipy matplotlib notebook
+
+# Install dependencies
+pip install pandas numpy scipy matplotlib notebook ipywidgets
 ```
 
-Then start Jupyter from the repository root:
+Then launch Jupyter **from the repository root** (so `kit.py` can resolve its relative `data/` paths):
 
 ```bash
 jupyter notebook
 ```
 
-Running Jupyter from the root folder matters because `kit.py` loads datasets with relative paths such as `data/edhec-hedgefundindices.csv`.
+---
 
 ## Project Structure
 
 ```text
 .
-|-- 1_RiskAjustedReturns.ipynb
-|-- 2_ComputeDrawDown.ipynb
-|-- 3_BuildModules.ipynb
-|-- 4_DeviationsFromNormality.ipynb
-|-- 5_VaR_CVaR.ipynb
-|-- 6_Quiz.ipynb
-|-- 7_Efficient_Frontier.ipynb
-|-- 8_Asset_efficient_frontier.ipynb
-|-- 9_N_Asset_Efficient_Frontier.ipynb
-|-- 10_Max_Sharp_Ratio.ipynb
-|-- 11_GMV.ipynb
-|-- 12_Limits_of_Diversification.ipynb
-|-- 13_CPPI.ipynb
-|-- 14_Random_Walk.ipynb
-|-- BuildOwnModules/
-|-- Exercise/
-|   `-- module2.ipynb
-|-- data/
-|   `-- *.csv
-|-- kit.py
-`-- README.md
+├── 1_RiskAjustedReturns.ipynb
+├── 2_ComputeDrawDown.ipynb
+├── 3_BuildModules.ipynb
+├── 4_DeviationsFromNormality.ipynb
+├── 5_VaR_CVaR.ipynb
+├── 6_Test_Market.ipynb
+├── 7_Efficient_Frontier.ipynb
+├── 8_Asset_efficient_frontier.ipynb
+├── 9_N_Asset_Efficient_Frontier.ipynb
+├── 10_Max_Sharp_Ratio.ipynb
+├── 11_GMV.ipynb
+├── 12_Limits_of_Diversification.ipynb
+├── 13_CPPI.ipynb
+├── 14_Random_Walk.ipynb
+├── 15_Interactive_Plotting_Monte_Carlo_Simulations.ipynb
+├── 16_PV_Liabilities_Funding_Ratio.ipynb
+├── BuildOwnModules/
+├── Exercise/
+│   └── module2.ipynb
+├── data/
+│   └── *.csv
+├── kit.py
+└── README.md
 ```
+
+---
 
 ## Notes
 
-- Some filenames reflect the original course naming and have been kept unchanged for compatibility with the existing workspace.
-- The notebooks are exploratory. Results may depend on cell execution order if a notebook has not been run from top to bottom.
-- If you update `kit.py`, rerun dependent notebooks so imported functions and plotted results stay in sync.
-- The CPPI notebook (`13_CPPI.ipynb`) relies on `run_cppi()` from `kit.py`. Ensure `kit.py` is importable from the same directory as the notebooks.
+- The notebooks are exploratory. If cells are run out of order, results may differ — always **Restart & Run All** for reproducible output.
+- If you update `kit.py`, restart the kernel in any dependent notebook so the changes take effect.
+- The CPPI notebook (`13_CPPI`) and Monte Carlo notebook (`15_Interactive_Plotting...`) rely on functions from `kit.py`. Make sure the module is importable from the same directory.
