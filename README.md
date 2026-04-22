@@ -26,6 +26,7 @@ The project is organized as an **interactive learning workspace**: analysis live
 | 14 | `14_Random_Walk.ipynb` | Monte Carlo simulation of portfolio paths using Geometric Brownian Motion |
 | 15 | `15_Interactive_Plotting_Monte_Carlo_Simulations.ipynb` | Interactive widgets for Monte Carlo scenario exploration |
 | 16 | `16_PV_Liabilities_Funding_Ratio.ipynb` | Present value of liabilities and funding ratio analysis |
+| 17 | `17_CIR_Model_Interest_Rate_Liability_Hedging.ipynb` | Cox-Ingersoll-Ross interest rate model, ZCB pricing, and liability hedging |
 
 Additional material lives in `Exercise/module2.ipynb`.
 
@@ -36,7 +37,7 @@ Additional material lives in `Exercise/module2.ipynb`.
 The notebooks follow a natural progression:
 
 ```
-Return Measurement → Risk Diagnostics → Portfolio Construction & Optimization → Dynamic Strategies → Simulation & Liability Management
+Return Measurement → Risk Diagnostics → Portfolio Construction & Optimization → Dynamic Strategies → Simulation & Liability Management → Interest Rate Modeling & Hedging
 ```
 
 Work through them in numbered order for the smoothest experience.
@@ -93,6 +94,15 @@ All reusable logic is centralized in `kit.py`. Functions fall into six categorie
 | `run_cppi()` | Backtest the CPPI strategy with configurable multiplier, floor, and optional drawdown-based floor |
 | `gbm()` | Geometric Brownian Motion Monte Carlo price/return simulator |
 | `summary_stats()` | One-call summary table: annualized return, volatility, Sharpe, max drawdown, skew, kurtosis, VaR, CVaR |
+
+### Interest Rate Modeling & Bond Pricing
+| Function | Purpose |
+|----------|---------|
+| `discount()` | Price of a pure discount bond paying $1 at time *t* given rate *r* |
+| `pv()` | Present value of a sequence of time-indexed liabilities |
+| `inst_to_ann()` | Convert instantaneous (continuously compounded) short rate to annualized rate |
+| `ann_to_inst()` | Convert annualized rate to instantaneous short rate |
+| `cir()` | CIR (Cox-Ingersoll-Ross) stochastic interest rate simulator — returns both annualized rate paths and zero-coupon bond price paths |
 
 ### Quick Example
 
@@ -171,6 +181,7 @@ jupyter notebook
 ├── 14_Random_Walk.ipynb
 ├── 15_Interactive_Plotting_Monte_Carlo_Simulations.ipynb
 ├── 16_PV_Liabilities_Funding_Ratio.ipynb
+├── 17_CIR_Model_Interest_Rate_Liability_Hedging.ipynb
 ├── BuildOwnModules/
 ├── Exercise/
 │   └── module2.ipynb
@@ -186,4 +197,4 @@ jupyter notebook
 
 - The notebooks are exploratory. If cells are run out of order, results may differ — always **Restart & Run All** for reproducible output.
 - If you update `kit.py`, restart the kernel in any dependent notebook so the changes take effect.
-- The CPPI notebook (`13_CPPI`) and Monte Carlo notebook (`15_Interactive_Plotting...`) rely on functions from `kit.py`. Make sure the module is importable from the same directory.
+- The CPPI notebook (`13_CPPI`), Monte Carlo notebook (`15_Interactive_Plotting...`), and CIR notebook (`17_CIR_Model...`) rely on functions from `kit.py`. Make sure the module is importable from the same directory.
