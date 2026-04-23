@@ -1,6 +1,6 @@
 # Portfolio Construction Toolkit
 
-A hands-on Python toolkit for quantitative portfolio analysis — from basic return calculations all the way to dynamic allocation strategies and Monte Carlo simulation.
+A hands-on Python toolkit for quantitative portfolio analysis — from basic return calculations all the way to dynamic allocation strategies, Monte Carlo simulation, interest rate modeling, and liability-driven investing.
 
 The project is organized as an **interactive learning workspace**: analysis lives in Jupyter notebooks, while all reusable functions are collected in a single helper module (`kit.py`). Sample datasets ship with the repository so every notebook runs out of the box.
 
@@ -25,8 +25,9 @@ The project is organized as an **interactive learning workspace**: analysis live
 | 13 | `13_CPPI.ipynb` | Constant Proportion Portfolio Insurance — dynamic floor-based allocation between a risky and a safe asset |
 | 14 | `14_Random_Walk.ipynb` | Monte Carlo simulation of portfolio paths using Geometric Brownian Motion |
 | 15 | `15_Interactive_Plotting_Monte_Carlo_Simulations.ipynb` | Interactive widgets for Monte Carlo scenario exploration |
-| 16 | `16_PV_Liabilities_Funding_Ratio.ipynb` | Present value of liabilities and funding ratio analysis |
-| 17 | `17_CIR_Model_Interest_Rate_Liability_Hedging.ipynb` | Cox-Ingersoll-Ross interest rate model, ZCB pricing, and liability hedging |
+| 16 | `16_PV_Liabilities_Funding_Ratio.ipynb` | Present value of liabilities, discount factors, and funding ratio analysis |
+| 17 | `17_CIR_Model_Interest_Rate_Liability_Hedging.ipynb` | Cox-Ingersoll-Ross stochastic interest rate model, ZCB pricing, and interactive rate/price visualization |
+| 18 | `18_GHP_Construction_Duration_Matching.ipynb` | Goal-Hedging Portfolio construction with bond pricing, Macaulay duration, and duration matching |
 
 Additional material lives in `Exercise/module2.ipynb`.
 
@@ -37,7 +38,7 @@ Additional material lives in `Exercise/module2.ipynb`.
 The notebooks follow a natural progression:
 
 ```
-Return Measurement → Risk Diagnostics → Portfolio Construction & Optimization → Dynamic Strategies → Simulation & Liability Management → Interest Rate Modeling & Hedging
+Return Measurement → Risk Diagnostics → Portfolio Construction & Optimization → Dynamic Strategies → Simulation → Liability Management → Interest Rate Modeling → Duration Matching & LDI
 ```
 
 Work through them in numbered order for the smoothest experience.
@@ -46,7 +47,7 @@ Work through them in numbered order for the smoothest experience.
 
 ## `kit.py` — The Core Module
 
-All reusable logic is centralized in `kit.py`. Functions fall into six categories:
+All reusable logic is centralized in `kit.py`. Functions fall into seven categories:
 
 ### Data Loading
 | Function | Purpose |
@@ -95,14 +96,19 @@ All reusable logic is centralized in `kit.py`. Functions fall into six categorie
 | `gbm()` | Geometric Brownian Motion Monte Carlo price/return simulator |
 | `summary_stats()` | One-call summary table: annualized return, volatility, Sharpe, max drawdown, skew, kurtosis, VaR, CVaR |
 
-### Interest Rate Modeling & Bond Pricing
+### Interest Rate Modeling, Bond Pricing & LDI
 | Function | Purpose |
 |----------|---------|
 | `discount()` | Price of a pure discount bond paying $1 at time *t* given rate *r* |
 | `pv()` | Present value of a sequence of time-indexed liabilities |
+| `funding_ratio()` | Ratio of PV of assets to PV of liabilities |
 | `inst_to_ann()` | Convert instantaneous (continuously compounded) short rate to annualized rate |
 | `ann_to_inst()` | Convert annualized rate to instantaneous short rate |
-| `cir()` | CIR (Cox-Ingersoll-Ross) stochastic interest rate simulator — returns both annualized rate paths and zero-coupon bond price paths |
+| `cir()` | CIR (Cox-Ingersoll-Ross) stochastic interest rate simulator — returns both annualized rate paths and zero-coupon bond price paths (analytical formula) |
+| `bond_cash_flows()` | Generate the cash flow schedule of a coupon-paying bond |
+| `bond_price()` | Price a coupon bond by discounting its cash flows |
+| `mauclay_duration()` | Compute Macaulay duration of a bond from its cash flows and discount rate |
+| `match_duration()` | Compute portfolio weights that match a target duration using two bonds (short and long) |
 
 ### Quick Example
 
@@ -123,6 +129,14 @@ stats = erk.summary_stats(hfi)
 
 # Monte Carlo simulation (10 years, 1 000 paths)
 prices = erk.gbm(n_years=10, n_scenarios=1000, mu=0.07, sigma=0.15)
+
+# CIR interest rate simulation (returns rates and ZCB prices)
+rates, zcb_prices = erk.cir(n_years=10, n_scenarios=50, a=0.05, b=0.03, sigma=0.05)
+
+# Bond pricing and duration
+cf = erk.bond_cash_flows(maturity=3, principal=100, coupon_rate=0.05, coupon_per_year=2)
+price = erk.bond_price(maturity=3, principal=100, coupon_rate=0.05, discount_rate=0.04)
+duration = erk.mauclay_duration(cf, discount_rates=0.04/2)
 ```
 
 ---
@@ -182,6 +196,7 @@ jupyter notebook
 ├── 15_Interactive_Plotting_Monte_Carlo_Simulations.ipynb
 ├── 16_PV_Liabilities_Funding_Ratio.ipynb
 ├── 17_CIR_Model_Interest_Rate_Liability_Hedging.ipynb
+├── 18_GHP_Construction_Duration_Matching.ipynb
 ├── BuildOwnModules/
 ├── Exercise/
 │   └── module2.ipynb
@@ -197,4 +212,4 @@ jupyter notebook
 
 - The notebooks are exploratory. If cells are run out of order, results may differ — always **Restart & Run All** for reproducible output.
 - If you update `kit.py`, restart the kernel in any dependent notebook so the changes take effect.
-- The CPPI notebook (`13_CPPI`), Monte Carlo notebook (`15_Interactive_Plotting...`), and CIR notebook (`17_CIR_Model...`) rely on functions from `kit.py`. Make sure the module is importable from the same directory.
+- The CPPI notebook (`13_CPPI`), Monte Carlo notebook (`15_Interactive_Plotting...`), CIR notebook (`17_CIR_Model...`), and GHP notebook (`18_GHP_Construction...`) rely on functions from `kit.py`. Make sure the module is importable from the same directory.
