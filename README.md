@@ -28,6 +28,7 @@ The project is organized as an **interactive learning workspace**: analysis live
 | 16 | `16_PV_Liabilities_Funding_Ratio.ipynb` | Present value of liabilities, discount factors, and funding ratio analysis |
 | 17 | `17_CIR_Model_Interest_Rate_Liability_Hedging.ipynb` | Cox-Ingersoll-Ross stochastic interest rate model, ZCB pricing, and interactive rate/price visualization |
 | 18 | `18_GHP_Construction_Duration_Matching.ipynb` | Goal-Hedging Portfolio construction with bond pricing, Macaulay duration, and duration matching |
+| 19 | `19_Monte_Carlo_w_CIR.ipynb` | Monte Carlo simulation of bond prices under CIR stochastic interest rates, total return computation |
 
 Additional material lives in `Exercise/module2.ipynb`.
 
@@ -38,7 +39,7 @@ Additional material lives in `Exercise/module2.ipynb`.
 The notebooks follow a natural progression:
 
 ```
-Return Measurement → Risk Diagnostics → Portfolio Construction & Optimization → Dynamic Strategies → Simulation → Liability Management → Interest Rate Modeling → Duration Matching & LDI
+Return Measurement → Risk Diagnostics → Portfolio Construction & Optimization → Dynamic Strategies → Simulation → Liability Management → Interest Rate Modeling → Duration Matching & LDI → Monte Carlo Bond Pricing
 ```
 
 Work through them in numbered order for the smoothest experience.
@@ -99,16 +100,17 @@ All reusable logic is centralized in `kit.py`. Functions fall into seven categor
 ### Interest Rate Modeling, Bond Pricing & LDI
 | Function | Purpose |
 |----------|---------|
-| `discount()` | Price of a pure discount bond paying $1 at time *t* given rate *r* |
-| `pv()` | Present value of a sequence of time-indexed liabilities |
+| `discount()` | Price of a pure discount bond paying $1 at time *t* given rate *r* — supports scalar, Series, or DataFrame rates and returns a DataFrame indexed by *t* |
+| `pv()` | Present value of a sequence of time-indexed cash flows — supports scalar, Series, or DataFrame discount rates |
 | `funding_ratio()` | Ratio of PV of assets to PV of liabilities |
 | `inst_to_ann()` | Convert instantaneous (continuously compounded) short rate to annualized rate |
 | `ann_to_inst()` | Convert annualized rate to instantaneous short rate |
 | `cir()` | CIR (Cox-Ingersoll-Ross) stochastic interest rate simulator — returns both annualized rate paths and zero-coupon bond price paths (analytical formula) |
 | `bond_cash_flows()` | Generate the cash flow schedule of a coupon-paying bond |
-| `bond_price()` | Price a coupon bond by discounting its cash flows |
+| `bond_price()` | Price a coupon bond by discounting its cash flows — accepts a DataFrame of time-varying discount rates to price across multiple scenarios and time steps |
 | `mauclay_duration()` | Compute Macaulay duration of a bond from its cash flows and discount rate |
 | `match_duration()` | Compute portfolio weights that match a target duration using two bonds (short and long) |
+| `bond_total_return()` | Compute total return of a bond from monthly prices and coupon reinvestment |
 
 ### Quick Example
 
@@ -136,6 +138,9 @@ rates, zcb_prices = erk.cir(n_years=10, n_scenarios=50, a=0.05, b=0.03, sigma=0.
 # Bond pricing and duration
 cf = erk.bond_cash_flows(maturity=3, principal=100, coupon_rate=0.05, coupon_per_year=2)
 price = erk.bond_price(maturity=3, principal=100, coupon_rate=0.05, discount_rate=0.04)
+
+# Bond total return from monthly price series
+total_ret = erk.bond_total_return(monthly_prices, principal=100, coupon_rate=0.05, coupon_per_year=2)
 duration = erk.mauclay_duration(cf, discount_rates=0.04/2)
 ```
 
@@ -197,6 +202,7 @@ jupyter notebook
 ├── 16_PV_Liabilities_Funding_Ratio.ipynb
 ├── 17_CIR_Model_Interest_Rate_Liability_Hedging.ipynb
 ├── 18_GHP_Construction_Duration_Matching.ipynb
+├── 19_Monte_Carlo_w_CIR.ipynb
 ├── BuildOwnModules/
 ├── Exercise/
 │   └── module2.ipynb
@@ -212,4 +218,4 @@ jupyter notebook
 
 - The notebooks are exploratory. If cells are run out of order, results may differ — always **Restart & Run All** for reproducible output.
 - If you update `kit.py`, restart the kernel in any dependent notebook so the changes take effect.
-- The CPPI notebook (`13_CPPI`), Monte Carlo notebook (`15_Interactive_Plotting...`), CIR notebook (`17_CIR_Model...`), and GHP notebook (`18_GHP_Construction...`) rely on functions from `kit.py`. Make sure the module is importable from the same directory.
+- The CPPI notebook (`13_CPPI`), Monte Carlo notebook (`15_Interactive_Plotting...`), CIR notebook (`17_CIR_Model...`), GHP notebook (`18_GHP_Construction...`), and Monte Carlo with CIR notebook (`19_Monte_Carlo_w_CIR`) rely on functions from `kit.py`. Make sure the module is importable from the same directory.

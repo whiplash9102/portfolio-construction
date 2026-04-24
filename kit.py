@@ -252,23 +252,43 @@ def plot_ef2(npoints, er, cov, style=".-"):
     return ef.plot.line(x="Volatility", y="Returns", style=style)
 
 
+# def discount(t, r):
+#     """
+#     Compute the price of pure discount bond that pay a dollar a time t, given interest rate r
+#     """
+#     return (1 + r) ** (-t)
+
+
 def discount(t, r):
     """
-    Compute the price of pure discount bond that pay a dollar a time t, given interest rate r
+    Compute the price of a pure discount bond that pays a dollar at time t, given an interest rate r per
+    period. Returns a |t| x |r| Series or DataFrame. r can be a float, Series, or DataFrame.
+    Returns a DataFrame indexed by t.
     """
-    return (1 + r) ** (-t)
+    discounts = pd.DataFrame([(r + 1) ** (-i) for i in t], index=t)
+    return discounts
 
 
-def pv(l, r):
-    """
-    Compute the present value of a sequence of liabilities
-    l is indexexed by the time, and the values are the amount of each liability
-    retun present value of the sequences
-    """
+# # def pv(l, r):
+# #     """
+# #     Compute the present value of a sequence of liabilities
+# #     l is indexexed by the time, and the values are the amount of each liability
+# #     retun present value of the sequences
+# #     """
 
-    dates = l.index
+# #     dates = l.index
+# #     discounts = discount(dates, r)
+#     return (discounts * l).sum()
+
+
+def pv(flows, r):
+    """
+    Compute the present value of a sequence of flows given by the time as an index and amount. r can be
+    a scalar, or a Series or DataFrame with the number of rows matching the number of rows in flows.
+    """
+    dates = flows.index
     discounts = discount(dates, r)
-    return (discounts * l).sum()
+    return discounts.multiply(flows, axis="rows").sum()
 
 
 def minimize_vol(target_return, er, cov):
@@ -613,8 +633,23 @@ def bond_price(
     """
     Return the price of a bond given the maturity, principal, coupon rate, coupon per year, and discount rate
     """
-    cf = bond_cash_flows(maturity, principal, coupon_rate, coupon_per_year)
-    return pv(cf, discount_rate / coupon_per_year)
+    if isinstance(discount_rate, pd.DataFrame):
+        pricing_dates = discount_rate.index
+        prices = pd.DataFrame(index=pricing_dates, columns=discount_rate.columns)
+        for t in pricing_dates:
+            prices.loc[t] = bond_price(
+                maturity - t / coupon_per_year,
+                principal,
+                coupon_rate,
+                coupon_per_year,
+                discount_rate.loc[t],
+            )
+        return prices
+    else:
+        if maturity <= 0:
+            return principal + principal * coupon_rate / coupon_per_year
+        cash_flows = bond_cash_flows(maturity, principal, coupon_rate, coupon_per_year)
+        return pv(cash_flows, discount_rate / coupon_per_year)
 
 
 def mauclay_duration(cf, discount_rates):
@@ -635,3 +670,21 @@ def match_duration(cf_t, cf_s, cf_l, discount_rates):
     d_s = mauclay_duration(cf_s, discount_rates)
     d_l = mauclay_duration(cf_l, discount_rates)
     return (d_l - d_t) / (d_l - d_s)
+
+
+def bond_total_return(monthly_prices, principal, coupon_rate, coupon_per_year):
+    """
+    Computes the total return of a bond based on monthly bond prices and coupon
+    payments. Assumes that dividends are paid out at the end of the period and that
+    they are reinvested in the bond.
+    """
+    coupons = pd.DataFrame(
+        data=0, index=monthly_prices.index, columns=monthly_prices.columns
+    )
+    t_max = monthly_prices.index.max()
+    pay_date = np.linspace(
+        12 / coupon_per_year, t_max, int(coupon_per_year * t_max / 12), dtype=int
+    )
+    coupons.iloc[pay_date] = (principal * coupon_rate) / coupon_per_year
+    total_return = (monthly_prices + coupons) / monthly_prices.shift() - 1
+    return total_return.dropna()
