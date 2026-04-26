@@ -746,6 +746,7 @@ def terminal_stats(rets, floor=0.8, cap=np.inf, name="Stats"):
         "p_breach": p_breach,
         "e_short": e_short,
         "e_surplus": e_surplus,
+        "p_reach": reach.mean(),
     }
 
     sum_stats = pd.DataFrame.from_dict(stats, orient="index", columns=[name])
@@ -765,3 +766,74 @@ def glide_path_allocator(r1, r2, start_glide=1, end_glide=0):
     paths.columns = r1.columns
 
     return paths
+
+
+def floor_allocator(psp_r, ghp_r, floor, zc_prices, m=3):
+    """
+    Allocate capital between psp and ghp such that the floor is met
+    """
+    if zc_prices.shape != psp_r.shape:
+        raise ValueError("PSP and ZC Price must have the same shape")
+    n_steps, n_scenarios = psp_r.shape
+    account_value = np.repeat(1, n_scenarios)
+    floor_value = np.repeat(1, n_scenarios)
+    w_history = pd.DataFrame(index=psp_r.index, columns=psp_r.columns)
+
+    for step in range(n_steps):
+        # PV of floor assuming today's rate and flat YC
+        floor_value = floor * zc_prices.iloc[step]
+        cushion = (account_value - floor_value) / account_value
+        psp_w = (m * cushion).clip(0, 1)
+        ghp_w = 1 - psp_w
+        psp_alloc = account_value * psp_w
+        ghp_alloc = account_value * ghp_w
+
+        # Recompute the new acoount value at the end of this step
+        account_value = psp_alloc * (1 + psp_r.iloc[step]) + ghp_alloc * (
+            1 + ghp_r.iloc[step]
+        )
+
+        w_history.iloc[step] = psp_w
+
+    return w_history
+
+
+def drawdown_allocator(psp_r, ghp_r, maxdd, m=3):
+    """
+    Allocate between PSP and GHP using a CPPI-style drawdown constraint.
+
+    PSP = performance-seeking portfolio
+    GHP = goal-hedging portfolio
+    maxdd = maximum allowed drawdown from previous peak
+    m = CPPI multiplier
+
+    Returns a DataFrame of PSP weights.
+    """
+
+    n_steps, n_scenarios = psp_r.shape
+
+    account_value = np.repeat(1.0, n_scenarios)
+    peak_value = np.repeat(1.0, n_scenarios)
+
+    w_history = pd.DataFrame(index=psp_r.index, columns=psp_r.columns, dtype=float)
+
+    for step in range(n_steps):
+        floor_value = (1 - maxdd) * peak_value
+
+        cushion = (account_value - floor_value) / account_value
+
+        psp_w = (m * cushion).clip(0, 1)
+        ghp_w = 1 - psp_w
+
+        psp_alloc = account_value * psp_w
+        ghp_alloc = account_value * ghp_w
+
+        account_value = psp_alloc * (1 + psp_r.iloc[step].values) + ghp_alloc * (
+            1 + ghp_r.iloc[step].values
+        )
+
+        peak_value = np.maximum(peak_value, account_value)
+
+        w_history.iloc[step] = psp_w
+
+    return w_history
