@@ -631,34 +631,58 @@ def bond_price(
     maturity, principal=100, coupon_rate=0.03, coupon_per_year=12, discount_rate=0.03
 ):
     """
-    Return the price of a bond given the maturity, principal, coupon rate, coupon per year, and discount rate
+    Return the price of a bond.
+
+    Assumption:
+    - bond_cash_flows() returns cash flows indexed by coupon periods.
+    - discount_rate is annual yield.
     """
+
     if isinstance(discount_rate, pd.DataFrame):
         pricing_dates = discount_rate.index
         prices = pd.DataFrame(index=pricing_dates, columns=discount_rate.columns)
+
         for t in pricing_dates:
             prices.loc[t] = bond_price(
-                maturity - t / coupon_per_year,
-                principal,
-                coupon_rate,
-                coupon_per_year,
-                discount_rate.loc[t],
+                maturity=maturity - t / coupon_per_year,
+                principal=principal,
+                coupon_rate=coupon_rate,
+                coupon_per_year=coupon_per_year,
+                discount_rate=discount_rate.loc[t],
             )
+
         return prices
-    else:
-        if maturity <= 0:
-            return principal + principal * coupon_rate / coupon_per_year
-        cash_flows = bond_cash_flows(maturity, principal, coupon_rate, coupon_per_year)
-        return pv(cash_flows, discount_rate / coupon_per_year)
+
+    if maturity <= 0:
+        return principal + principal * coupon_rate / coupon_per_year
+
+    cash_flows = bond_cash_flows(
+        maturity=maturity,
+        principal=principal,
+        coupon_rate=coupon_rate,
+        coupon_per_year=coupon_per_year,
+    )
+
+    price = pv(cash_flows, discount_rate / coupon_per_year)
+
+    if isinstance(price, pd.Series) and len(price) == 1:
+        return price.iloc[0]
+
+    return price
 
 
-def mauclay_duration(cf, discount_rates):
+def macaulay_duration(cf, discount_rate):
     """
-    Compute the Macaulay duration of a bond, given the cash flows and the discount rates.
+    Compute the Macaulay duration of a bond.
     """
-    dcf = discount(cf.index, r=discount_rates) * cf
+    times = np.array(cf.index, dtype=float)
+
+    discount_factors = pd.Series(data=(1 + discount_rate) ** (-times), index=cf.index)
+
+    dcf = cf * discount_factors
     weights = dcf / dcf.sum()
-    return np.average(cf.index, weights=weights)
+
+    return np.average(times, weights=weights.to_numpy())
 
 
 def match_duration(cf_t, cf_s, cf_l, discount_rates):
@@ -666,9 +690,9 @@ def match_duration(cf_t, cf_s, cf_l, discount_rates):
     Compute the weights for matching the duration of the portfolio to the duration of the liability.
     """
 
-    d_t = mauclay_duration(cf_t, discount_rates)
-    d_s = mauclay_duration(cf_s, discount_rates)
-    d_l = mauclay_duration(cf_l, discount_rates)
+    d_t = macaulay_duration(cf_t, discount_rates)
+    d_s = macaulay_duration(cf_s, discount_rates)
+    d_l = macaulay_duration(cf_l, discount_rates)
     return (d_l - d_t) / (d_l - d_s)
 
 

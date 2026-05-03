@@ -108,7 +108,7 @@ All reusable logic is centralized in `kit.py`. Functions fall into seven categor
 | `cir()` | CIR (Cox-Ingersoll-Ross) stochastic interest rate simulator — returns both annualized rate paths and zero-coupon bond price paths (analytical formula) |
 | `bond_cash_flows()` | Generate the cash flow schedule of a coupon-paying bond |
 | `bond_price()` | Price a coupon bond by discounting its cash flows — accepts a DataFrame of time-varying discount rates to price across multiple scenarios and time steps |
-| `mauclay_duration()` | Compute Macaulay duration of a bond from its cash flows and discount rate |
+| `macaulay_duration()` | Compute Macaulay duration of a bond from its cash flows and discount rate |
 | `match_duration()` | Compute portfolio weights that match a target duration using two bonds (short and long) |
 | `bond_total_return()` | Compute total return of a bond from monthly prices and coupon reinvestment |
 
@@ -141,7 +141,7 @@ price = erk.bond_price(maturity=3, principal=100, coupon_rate=0.05, discount_rat
 
 # Bond total return from monthly price series
 total_ret = erk.bond_total_return(monthly_prices, principal=100, coupon_rate=0.05, coupon_per_year=2)
-duration = erk.mauclay_duration(cf, discount_rates=0.04/2)
+duration = erk.macaulay_duration(cf, discount_rates=0.04/2)
 ```
 
 ---
