@@ -219,3 +219,4 @@ jupyter notebook
 - The notebooks are exploratory. If cells are run out of order, results may differ — always **Restart & Run All** for reproducible output.
 - If you update `kit.py`, restart the kernel in any dependent notebook so the changes take effect.
 - The CPPI notebook (`13_CPPI`), Monte Carlo notebook (`15_Interactive_Plotting...`), CIR notebook (`17_CIR_Model...`), GHP notebook (`18_GHP_Construction...`), and Monte Carlo with CIR notebook (`19_Monte_Carlo_w_CIR`) rely on functions from `kit.py`. Make sure the module is importable from the same directory.
+# OOP

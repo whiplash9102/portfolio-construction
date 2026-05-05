@@ -1,1 +1,12 @@
 /Users/phamthanh/Documents/ESSCA | MSc Finance & Data Analyst/9. Introduction to Portfolio Construction
+
+# Local/editor artifacts
+.DS_Store
+.claude/
+
+# Python caches
+__pycache__/
+*.py[cod]
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
